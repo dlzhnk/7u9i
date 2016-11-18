@@ -15,3 +15,34 @@ function gestureStart() {
     }
   }
 }
+
+function animate(options) {
+  var start = performance.now();
+  requestAnimationFrame(function animate(time) {
+    var timeFraction = (time - start) / options.duration;
+    if (timeFraction > 1) timeFraction = 1;
+    var progress = options.timing(timeFraction)
+    options.draw(progress);
+    if (timeFraction < 1) {
+      requestAnimationFrame(animate);
+    }
+  });
+}
+
+/*
+knop.onclick = function() {
+	animate({
+		duration: 500,s
+		timing: function(timeFraction) {
+			return timeFraction;
+		},
+		draw: function(10) {
+			header.style.backgroundColor = "#ccc";
+		}
+	});
+};
+*/
+
+knop.onclick = function() {
+	document.body.style.backgroundColor = "#ccc";
+};
