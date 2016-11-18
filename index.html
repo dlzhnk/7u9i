@@ -1,137 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>спиздил three.js webgl - dashed lines</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				color: #ffffff;
-				font-family:Courier New;
-				font-size:14px;
-				text-align:center;
-				font-weight: normal;
-				background-color: #000000;
-				overflow: hidden;
-				margin: 0;
-			}
-			#info {
-				color: #fff;
-				position: absolute;
-				top: 10px; width: 100%;
-				padding: 5px;
-				z-index:100;
-			}
-		</style>
+<meta charset="utf-8">
+<style>
 
-	</head>
+path {
+  pointer-events: all;
+  fill: none;
+  stroke: #666;
+  stroke-opacity: 0.2;
+}
 
-	<body>
-		<div id="info">спиздил у three - dashed lines example</div>
-		<div id="container"></div>
+.active circle {
+  stroke: #000;
+  stroke-width: 2px;
+}
 
-		<script src="javascripts/three.js"></script>
-		<script src="javascripts/hilbert3D.js"></script>
-		<script src="javascripts/Detector.js"></script>
-		<script src="javascripts/stats.min.js"></script>
+</style>
+<svg width="960" height="500"></svg>
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
 
-		<script>
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-			var renderer, scene, camera, stats;
-			var objects = [];
-			var WIDTH = window.innerWidth,
-				HEIGHT = window.innerHeight;
-			init();
-			animate();
-			function init() {
-				camera = new THREE.PerspectiveCamera( 60, WIDTH / HEIGHT, 1, 200 );
-				camera.position.z = 150;
-				scene = new THREE.Scene();
-				scene.fog = new THREE.Fog( 0x111111, 150, 200 );
-				root = new THREE.Object3D();
-				var subdivisions = 6;
-				var recursion = 1;
-				var points = hilbert3D( new THREE.Vector3( 0,0,0 ), 25.0, recursion, 0, 1, 2, 3, 4, 5, 6, 7 );
-				var spline = new THREE.Spline( points );
-				var geometrySpline = new THREE.Geometry();
-				for ( var i = 0; i < points.length * subdivisions; i ++ ) {
-					var index = i / ( points.length * subdivisions );
-					var position = spline.getPoint( index );
-					geometrySpline.vertices[ i ] = new THREE.Vector3( position.x, position.y, position.z );
-				}
-				var geometryCube = cube( 50 );
-				geometryCube.computeLineDistances();
-				geometrySpline.computeLineDistances();
-				var object = new THREE.Line( geometrySpline, new THREE.LineDashedMaterial( { color: 0xffffff, dashSize: 1, gapSize: 0.5 } ) );
-				objects.push( object );
-				scene.add( object );
-				var object = new THREE.LineSegments( geometryCube, new THREE.LineDashedMaterial( { color: 0xffaa00, dashSize: 3, gapSize: 1, linewidth: 2 } ) );
-				objects.push( object );
-				scene.add( object );
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setClearColor( 0x111111 );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( WIDTH, HEIGHT );
-				var container = document.getElementById( 'container' );
-				container.appendChild( renderer.domElement );
-				stats = new Stats();
-				container.appendChild( stats.dom );
-				//
-				window.addEventListener( 'resize', onWindowResize, false );
-			}
-			function cube( size ) {
-				var h = size * 0.5;
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(
-					new THREE.Vector3( -h, -h, -h ),
-					new THREE.Vector3( -h, h, -h ),
-					new THREE.Vector3( -h, h, -h ),
-					new THREE.Vector3( h, h, -h ),
-					new THREE.Vector3( h, h, -h ),
-					new THREE.Vector3( h, -h, -h ),
-					new THREE.Vector3( h, -h, -h ),
-					new THREE.Vector3( -h, -h, -h ),
-					new THREE.Vector3( -h, -h, h ),
-					new THREE.Vector3( -h, h, h ),
-					new THREE.Vector3( -h, h, h ),
-					new THREE.Vector3( h, h, h ),
-					new THREE.Vector3( h, h, h ),
-					new THREE.Vector3( h, -h, h ),
-					new THREE.Vector3( h, -h, h ),
-					new THREE.Vector3( -h, -h, h ),
-					new THREE.Vector3( -h, -h, -h ),
-					new THREE.Vector3( -h, -h, h ),
-					new THREE.Vector3( -h, h, -h ),
-					new THREE.Vector3( -h, h, h ),
-					new THREE.Vector3( h, h, -h ),
-					new THREE.Vector3( h, h, h ),
-					new THREE.Vector3( h, -h, -h ),
-					new THREE.Vector3( h, -h, h )
-				 );
-				return geometry;
-			}
-			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize( window.innerWidth, window.innerHeight );
-			}
-			function animate() {
-				requestAnimationFrame( animate );
-				render();
-				stats.update();
-			}
-			function render() {
-				var time = Date.now() * 0.001;
-				for ( var i = 0; i < objects.length; i ++ ) {
-					var object = objects[ i ];
-					//object.rotation.x = 0.25 * time * ( i%2 == 1 ? 1 : -1);
-					object.rotation.x = 0.25 * time;
-					object.rotation.y = 0.25 * time;
-				}
-				renderer.render( scene, camera );
-			}
-	</script>
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height"),
+    radius = 32;
 
-</body>
+var circles = d3.range(20).map(function() {
+  return {
+    x: Math.round(Math.random() * (width - radius * 2) + radius),
+    y: Math.round(Math.random() * (height - radius * 2) + radius)
+  };
+});
 
-</html>
+var color = d3.scaleOrdinal()
+    .range(d3.schemeCategory20);
+
+var voronoi = d3.voronoi()
+    .x(function(d) { return d.x; })
+    .y(function(d) { return d.y; })
+    .extent([[-1, -1], [width + 1, height + 1]]);
+
+var circle = svg.selectAll("g")
+  .data(circles)
+  .enter().append("g")
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+var cell = circle.append("path")
+  .data(voronoi.polygons(circles))
+    .attr("d", renderCell)
+    .attr("id", function(d, i) { return "cell-" + i; });
+
+circle.append("clipPath")
+    .attr("id", function(d, i) { return "clip-" + i; })
+  .append("use")
+    .attr("xlink:href", function(d, i) { return "#cell-" + i; });
+
+circle.append("circle")
+    .attr("clip-path", function(d, i) { return "url(#clip-" + i + ")"; })
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", radius)
+    .style("fill", function(d, i) { return color(i); });
+
+function dragstarted(d) {
+  d3.select(this).raise().classed("active", true);
+}
+
+function dragged(d) {
+  d3.select(this).select("circle").attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+  cell = cell.data(voronoi.polygons(circles)).attr("d", renderCell);
+}
+
+function dragended(d, i) {
+  d3.select(this).classed("active", false);
+}
+
+function renderCell(d) {
+  return d == null ? null : "M" + d.join("L") + "Z";
+}
+
+</script>
